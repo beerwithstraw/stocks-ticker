@@ -415,23 +415,29 @@ if "data_loaded" not in st.session_state:
 
 if refresh:
     with st.spinner("Pulling live data from Kite…"):
-        token_map   = load_instrument_tokens(kite)
-        daily_stats = load_daily_stats(kite, universe["symbol"].tolist(), token_map)
+        try:
+            token_map   = load_instrument_tokens(kite)
+            daily_stats = load_daily_stats(kite, universe["symbol"].tolist(), token_map)
 
-        stock_keys  = [f"NSE:{s}"   for s in universe["symbol"]]
-        index_keys  = [f"NSE:{idx}" for idx in SECTOR_INDEX.values()]
-        market_keys = [
-            "NSE:NIFTY 50", "NSE:NIFTY BANK", "NSE:INDIA VIX",
-            "NSE:GOLDBEES",   # Gold ETF proxy (Nippon India Gold BeES)
-            "NSE:SILVERBEES", # Silver ETF proxy (Nippon India Silver ETF)
-        ]
+            stock_keys  = [f"NSE:{s}"   for s in universe["symbol"]]
+            index_keys  = [f"NSE:{idx}" for idx in SECTOR_INDEX.values()]
+            market_keys = [
+                "NSE:NIFTY 50", "NSE:NIFTY BANK", "NSE:INDIA VIX",
+                "NSE:GOLDBEES",   # Gold ETF proxy (Nippon India Gold BeES)
+                "NSE:SILVERBEES", # Silver ETF proxy (Nippon India Silver ETF)
+            ]
 
-        quotes = fetch_live_quotes(kite, stock_keys + index_keys + market_keys)
-        st.session_state.update({
-            "quotes": quotes, "daily_stats": daily_stats,
-            "last_refreshed": datetime.now(), "data_loaded": True,
-        })
-    st.toast(f"Loaded {len(universe)} stocks · {len(SECTOR_INDEX)} indexed sectors", icon="✅")
+            quotes = fetch_live_quotes(kite, stock_keys + index_keys + market_keys)
+            st.session_state.update({
+                "quotes": quotes, "daily_stats": daily_stats,
+                "last_refreshed": datetime.now(), "data_loaded": True,
+            })
+            st.toast(f"Loaded {len(universe)} stocks · {len(SECTOR_INDEX)} indexed sectors", icon="✅")
+        except Exception as e:
+            st.error(f"**Kite API Error:** {e}")
+            st.warning("Your token might be expired. Please use the **🔑 Token** panel above to generate a new one.", icon="🚨")
+            st.session_state.pop("data_loaded", None)
+            st.stop()
 
 if not st.session_state.get("data_loaded"):
     st.stop()
