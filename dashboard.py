@@ -128,10 +128,21 @@ html, body, [class*="css"], .stApp {
 # Reads from Streamlit Secrets when deployed on Streamlit Community Cloud,
 # falls back to os.environ (populated from .env) for local development.
 def _secret(key: str) -> str | None:
+    # 1. Check session state first (populated dynamically)
+    if key in st.session_state and st.session_state[key]:
+        return st.session_state[key]
+    # 2. Check os.environ (populated from .env or dynamically)
+    val = os.environ.get(key)
+    if val:
+        return val
+    # 3. Check Streamlit Cloud secrets
     try:
-        return st.secrets[key]          # Streamlit Cloud secrets
+        val = st.secrets[key]
+        if val:
+            return val
     except Exception:
-        return os.environ.get(key)      # local .env
+        pass
+    return None
 
 
 API_KEY      = _secret("KITE_API_KEY")
@@ -394,8 +405,9 @@ if show_token_ui:
                     _session  = _kite_tmp.generate_session(_match.group(1), api_secret=API_SECRET)
                     from dotenv import set_key as _set_key
                     _set_key(str(_HERE / ".env"), "KITE_ACCESS_TOKEN", _session["access_token"])
-                    # Reload env so the running process picks up the new token
+                    # Reload env & session so the running process picks up the new token
                     os.environ["KITE_ACCESS_TOKEN"] = _session["access_token"]
+                    st.session_state["KITE_ACCESS_TOKEN"] = _session["access_token"]
                     # Clear all caches so the new token is used on next data pull
                     st.cache_resource.clear()
                     st.cache_data.clear()
