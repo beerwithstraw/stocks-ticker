@@ -1,0 +1,19 @@
+[Unit]
+Description=Morning Movers — NSE Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/stocks-ticker
+ExecStart=/opt/stocks-ticker/.venv/bin/streamlit run dashboard.py \
+    --server.port 8501 \
+    --server.address 127.0.0.1 \
+    --server.headless true \
+    --browser.gatherUsageStats false
+Restart=always
+RestartSec=5
+EnvironmentFile=/opt/stocks-ticker/.env
+
+[Install]
+WantedBy=multi-user.target
