@@ -138,13 +138,12 @@ API_KEY      = _secret("KITE_API_KEY")
 API_SECRET   = _secret("KITE_API_SECRET")
 ACCESS_TOKEN = _secret("KITE_ACCESS_TOKEN")
 
-_missing = [n for n, v in (("KITE_API_KEY", API_KEY), ("KITE_API_SECRET", API_SECRET),
-                            ("KITE_ACCESS_TOKEN", ACCESS_TOKEN)) if not v]
-if _missing:
+_missing_base = [n for n, v in (("KITE_API_KEY", API_KEY), ("KITE_API_SECRET", API_SECRET)) if not v]
+if _missing_base:
     st.error(
-        f"Missing credentials: **{', '.join(_missing)}**\n\n"
-        "**Local:** copy `env.example` → `.env` and fill in values, then run `python get_token.py`.\n\n"
-        "**Streamlit Cloud:** go to your app's **Settings → Secrets** and add the missing keys.",
+        f"Missing base credentials: **{', '.join(_missing_base)}**\n\n"
+        "**Local:** copy `env.example` → `.env` and fill in your API Key and Secret.\n\n"
+        "**Streamlit Cloud:** go to your app's **Settings → Secrets** and add the keys.",
         icon="🔑",
     )
     st.stop()
@@ -358,7 +357,8 @@ with hdr_l:
 with hdr_fno:
     fno_only = st.toggle("F&O Only", key="fno_toggle", value=False)
 with hdr_tok:
-    show_token_ui = st.toggle("🔑 Token", key="show_token", value=False)
+    # Auto-open token UI if access token is missing
+    show_token_ui = st.toggle("🔑 Token", key="show_token", value=not bool(ACCESS_TOKEN))
 with hdr_ref:
     refresh = st.button("⧳  Refresh", key="refresh_btn")
 
@@ -401,9 +401,14 @@ if show_token_ui:
                     st.cache_data.clear()
                     st.success("✅ Token saved! Hit Refresh to pull fresh data.")
                     st.session_state.pop("data_loaded", None)
+                    st.rerun()  # Instantly reload the page to apply the token
                 except Exception as _e:
                     st.error(f"Failed to generate session: {_e}")
         st.markdown("</div>", unsafe_allow_html=True)
+
+if not ACCESS_TOKEN:
+    st.warning("⚠️ **Kite Access Token is missing.** Please use the token renewal panel above.", icon="🚨")
+    st.stop()
 
 if "data_loaded" not in st.session_state:
     refresh = True
