@@ -7,6 +7,12 @@ _HERE = Path(__file__).parent
 env = dotenv_values(_HERE / ".env")
 
 # ── 1. Map NSE Industries to our Dashboard Sectors ─────────
+# The 12 sectors shown on the dashboard — everything else → OTHER
+KEEP_SECTORS = {
+    "BANK", "IT", "PHARMA", "AUTO", "CAPGOODS", "FMCG",
+    "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY", "INFRA",
+}
+
 SECTOR_MAP = {
     'Information Technology': 'IT',
     'Automobile and Auto Components': 'AUTO',
@@ -19,14 +25,15 @@ SECTOR_MAP = {
     'Oil Gas & Consumable Fuels': 'ENERGY',
     'Consumer Durables': 'CONSDURABLE',
     'Construction': 'INFRA',
-    'Construction Materials': 'CEMENT',
-    'Telecommunication': 'TELECOM',
-    'Chemicals': 'CHEMICALS',
-    'Services': 'SERVICES',
+    'Construction Materials': 'OTHER',   # CEMENT → OTHER
+    'Telecommunication': 'OTHER',
+    'Chemicals': 'OTHER',
+    'Services': 'OTHER',
     'Diversified': 'OTHER',
-    'Consumer Services': 'SERVICES',
-    'Textiles': 'TEXTILES',
-    'Media Entertainment & Publication': 'MEDIA'
+    'Consumer Services': 'OTHER',
+    'Textiles': 'OTHER',
+    'Media Entertainment & Publication': 'OTHER',
+    'Capital Goods': 'CAPGOODS',
 }
 
 # Known bank symbols that may not have 'Bank' in their company name
@@ -127,6 +134,10 @@ for _, row in df_nse.iterrows():
         sector = SYMBOL_OVERRIDES[symbol]
 
     # Sometimes Kite NFO names differ slightly (e.g. M&M vs M&M), but for most they match.
+    # Collapse anything outside the 12 named sectors into OTHER
+    if sector not in KEEP_SECTORS:
+        sector = 'OTHER'
+
     is_fno = "Y" if symbol in fno_symbols else "N"
 
     # Fix for M&M, NIFTY, etc.

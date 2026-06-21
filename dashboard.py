@@ -575,8 +575,7 @@ st.markdown('<div class="sec-label">By Sector</div>', unsafe_allow_html=True)
 SECTOR_PRIORITY = [
     "BANK", "IT", "PHARMA", "AUTO", "CAPGOODS", "FMCG",
     "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY",
-    "INFRA", "CHEMICALS", "TELECOM", "CEMENT",
-    "SERVICES", "TEXTILES", "MEDIA", "OTHER",
+    "INFRA", "OTHER",
 ]
 available_sectors = set(df["Sector"].unique())
 # Priority sectors that exist in our universe first, then any remaining alphabetically
