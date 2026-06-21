@@ -571,9 +571,19 @@ st.dataframe(
 st.markdown('<div class="sec-label">By Sector</div>', unsafe_allow_html=True)
 
 # Build ordered list: index sectors first (by move), then no-index sectors (alpha)
-sectors_ordered = [s for s, _ in sectors_by_move]
-sectors_no_idx  = sorted(s for s in df["Sector"].unique() if s not in sector_moves)
-all_sectors     = sectors_ordered + sectors_no_idx
+# Fixed priority order — important sectors always shown first regardless of daily performance
+SECTOR_PRIORITY = [
+    "BANK", "IT", "PHARMA", "AUTO", "FMCG",
+    "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY",
+    "INFRA", "CHEMICALS", "TELECOM", "CEMENT",
+    "SERVICES", "TEXTILES", "MEDIA", "OTHER",
+]
+available_sectors = set(df["Sector"].unique())
+# Priority sectors that exist in our universe first, then any remaining alphabetically
+all_sectors = (
+    [s for s in SECTOR_PRIORITY if s in available_sectors]
+    + sorted(s for s in available_sectors if s not in SECTOR_PRIORITY)
+)
 
 for row_start in range(0, len(all_sectors), 3):
     chunk = all_sectors[row_start : row_start + 3]
@@ -593,7 +603,13 @@ for row_start in range(0, len(all_sectors), 3):
             sdf = df[df["Sector"] == sector]
             if fno_only:
                 sdf = sdf[sdf["_is_fno"]]
-            combined = sdf.nlargest(6, "Move %")
+            top3 = sdf.nlargest(3, "Move %")
+            bot3 = sdf.nsmallest(3, "Move %").sort_values("Move %", ascending=True)
+            combined = (
+                pd.concat([top3, bot3])
+                .drop_duplicates(subset="_sym_raw")
+                .sort_values("Move %", ascending=False)
+            )
             if combined.empty:
                 st.caption("No F&O stocks in this sector.")
             else:
