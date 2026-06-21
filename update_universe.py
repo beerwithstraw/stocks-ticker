@@ -35,6 +35,9 @@ url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
 df_nse = pd.read_csv(url, storage_options={'User-Agent': 'Mozilla/5.0'})
 print(f"Downloaded {len(df_nse)} stocks.")
 
+# Known bank symbols that may not have 'Bank' in their company name
+BANK_SYMBOLS = {"SBIN", "PNB", "IOB", "CANFINHOME"}
+
 # ── 3. Find F&O Eligible Stocks using Kite ─────────────────
 print("Checking F&O eligibility via Kite API...")
 kite = KiteConnect(api_key=env.get("KITE_API_KEY", ""))
@@ -56,11 +59,16 @@ rows = []
 for _, row in df_nse.iterrows():
     symbol = row['Symbol']
     industry = row['Industry']
+    company_name = row['Company Name']
     sector = SECTOR_MAP.get(industry, 'OTHER')
-    
+
+    # Override: detect banking stocks by company name or known symbols
+    if 'bank' in company_name.lower() or symbol in BANK_SYMBOLS:
+        sector = 'BANK'
+
     # Sometimes Kite NFO names differ slightly (e.g. M&M vs M&M), but for most they match.
     is_fno = "Y" if symbol in fno_symbols else "N"
-    
+
     # Fix for M&M, NIFTY, etc.
     if symbol == "M&M": is_fno = "Y"
     if symbol == "BAJFINANCE": is_fno = "Y"

@@ -593,13 +593,7 @@ for row_start in range(0, len(all_sectors), 3):
             sdf = df[df["Sector"] == sector]
             if fno_only:
                 sdf = sdf[sdf["_is_fno"]]
-            top3 = sdf.nlargest(3, "Move %")
-            bot3 = sdf.nsmallest(3, "Move %").sort_values("Move %", ascending=True)
-            combined = (
-                pd.concat([top3, bot3])
-                .drop_duplicates(subset="_sym_raw")
-                .sort_values("Move %", ascending=False)
-            )
+            combined = sdf.nlargest(6, "Move %")
             if combined.empty:
                 st.caption("No F&O stocks in this sector.")
             else:
