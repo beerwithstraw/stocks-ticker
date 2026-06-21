@@ -29,14 +29,70 @@ SECTOR_MAP = {
     'Media Entertainment & Publication': 'MEDIA'
 }
 
+# Known bank symbols that may not have 'Bank' in their company name
+BANK_SYMBOLS = {"SBIN", "PNB", "IOB", "CANFINHOME"}
+
+# ── Manual overrides for badly auto-bucketed stocks ────────────────────────────
+# Capital Goods / Industrial / Engineering
+_CAPGOODS = {"ABB", "SIEMENS", "SCHNEIDER", "CGPOWER", "BHEL", "THERMAX",
+              "CUMMINSIND", "KIRLOSENG", "TIMKEN", "ELGIEQUIP", "ELECON",
+              "HONAUT", "ABB", "POLYCAB", "KEI", "FINCABLES", "RRKABEL",
+              "GVT&D", "POWERINDIA", "3MINDIA", "AIAENG", "CARBORUNIV",
+              "JYOTICNC", "USHAMART", "HBLENGINE", "PTCIL"}
+
+# Defence & Shipbuilding → keep under INFRA
+_DEFENCE   = {"HAL", "BEL", "BDL", "BEML", "COCHINSHIP", "GRSE",
+              "MAZDOCK", "TITAGARH"}
+
+# Auto stocks missed by NSE classification
+_AUTO_EXTRA = {"ASHOKLEY", "ESCORTS", "TMCV"}
+
+# Renewable energy / energy equipment
+_ENERGY_EXTRA = {"SUZLON", "INOXWIND", "WAAREEENER", "EMMVEE",
+                 "PREMIERENE", "TRITURBINE", "ACUTAAS"}
+
+# Metals & Mining missed by NSE
+_METAL_EXTRA = {"GRAPHITE", "HEG", "SHYAMMETL", "APLAPOLLO",
+                "WELCORP", "JINDALSAW", "GALLANTT", "GPIL"}
+
+# IT / Electronics / Tech
+_IT_EXTRA    = {"KAYNES", "SYRMA", "DATAPATTNS", "ZENTEC", "CPPLUS",
+                "NAUKRI", "INDIAMART", "CARTRADE", "TBOTEK", "ECLERX"}
+
+# Food & Retail → FMCG
+_FMCG_EXTRA  = {"SWIGGY", "ETERNAL", "JUBLFOOD", "DEVYANI", "SAPPHIRE",
+                "TRENT", "ABFRL", "ABLBL", "DMART", "TRAVELFOOD", "ACE"}
+
+# Chemicals / Materials
+_CHEM_EXTRA  = {"SUPREMEIND", "ASTRAL", "AEGISLOG", "AEGISVOPAK", "RHIM",
+                "TEGA", "DCMSHRIRAM"}
+
+# Logistics & Transport (keep under SERVICES)
+_SERV_KEEP   = {"IRCTC", "INDIGO", "GMRAIRPORT", "ADANIPORTS", "CONCOR",
+                "BLUEDART", "DELHIVERY", "GESHIP", "SCI", "JSWINFRA",
+                "REDINGTON", "MMTC", "FSL", "BLS"}
+
+# Hospitality → SERVICES fine
+# Internet platforms → IT
+_IT_INTERNET = {"NYKAA", "FIRSTCRY", "MEESHO", "LENSKART", "PAYTM",
+                "POLICYBZR", "ANGELONE", "CARTRADE"}
+
+SYMBOL_OVERRIDES = {}
+for sym in _CAPGOODS:   SYMBOL_OVERRIDES[sym] = "CAPGOODS"
+for sym in _DEFENCE:    SYMBOL_OVERRIDES[sym] = "INFRA"
+for sym in _AUTO_EXTRA: SYMBOL_OVERRIDES[sym] = "AUTO"
+for sym in _ENERGY_EXTRA: SYMBOL_OVERRIDES[sym] = "ENERGY"
+for sym in _METAL_EXTRA:  SYMBOL_OVERRIDES[sym] = "METAL"
+for sym in _IT_EXTRA:     SYMBOL_OVERRIDES[sym] = "IT"
+for sym in _IT_INTERNET:  SYMBOL_OVERRIDES[sym] = "IT"
+for sym in _FMCG_EXTRA:   SYMBOL_OVERRIDES[sym] = "FMCG"
+for sym in _CHEM_EXTRA:   SYMBOL_OVERRIDES[sym] = "CHEMICALS"
+
 # ── 2. Download Nifty 500 List ─────────────────────────────
 print("Downloading Nifty 500 list from NSE...")
 url = "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
 df_nse = pd.read_csv(url, storage_options={'User-Agent': 'Mozilla/5.0'})
 print(f"Downloaded {len(df_nse)} stocks.")
-
-# Known bank symbols that may not have 'Bank' in their company name
-BANK_SYMBOLS = {"SBIN", "PNB", "IOB", "CANFINHOME"}
 
 # ── 3. Find F&O Eligible Stocks using Kite ─────────────────
 print("Checking F&O eligibility via Kite API...")
@@ -66,6 +122,10 @@ for _, row in df_nse.iterrows():
     if 'bank' in company_name.lower() or symbol in BANK_SYMBOLS:
         sector = 'BANK'
 
+    # Apply manual overrides for badly auto-bucketed stocks
+    if symbol in SYMBOL_OVERRIDES:
+        sector = SYMBOL_OVERRIDES[symbol]
+
     # Sometimes Kite NFO names differ slightly (e.g. M&M vs M&M), but for most they match.
     is_fno = "Y" if symbol in fno_symbols else "N"
 
@@ -80,3 +140,6 @@ df_universe = pd.DataFrame(rows)
 out_path = _HERE / "universe.csv"
 df_universe.to_csv(out_path, index=False)
 print(f"Saved {len(df_universe)} stocks to {out_path}.")
+
+print("\n=== Final sector distribution ===")
+print(df_universe['sector'].value_counts().to_string())

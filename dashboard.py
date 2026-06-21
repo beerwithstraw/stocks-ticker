@@ -573,7 +573,7 @@ st.markdown('<div class="sec-label">By Sector</div>', unsafe_allow_html=True)
 # Build ordered list: index sectors first (by move), then no-index sectors (alpha)
 # Fixed priority order — important sectors always shown first regardless of daily performance
 SECTOR_PRIORITY = [
-    "BANK", "IT", "PHARMA", "AUTO", "FMCG",
+    "BANK", "IT", "PHARMA", "AUTO", "CAPGOODS", "FMCG",
     "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY",
     "INFRA", "CHEMICALS", "TELECOM", "CEMENT",
     "SERVICES", "TEXTILES", "MEDIA", "OTHER",
