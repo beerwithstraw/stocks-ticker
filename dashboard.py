@@ -214,8 +214,8 @@ def get_kite():
     return kite
 
 
-@st.cache_data
 def load_universe():
+    """Read universe.csv fresh every time — it's tiny and must not be stale."""
     return pd.read_csv(_HERE / "universe.csv")
 
 
