@@ -10,7 +10,8 @@ env = dotenv_values(_HERE / ".env")
 # The 12 sectors shown on the dashboard — everything else → OTHER
 KEEP_SECTORS = {
     "BANK", "IT", "PHARMA", "AUTO", "CAPGOODS", "FMCG",
-    "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY", "INFRA",
+    "METAL", "FINSERV", "ENERGY", "CONSDURABLE", "REALTY",
+    "INFRA", "DEFENCE", "OTHER",
 }
 
 SECTOR_MAP = {
@@ -47,9 +48,10 @@ _CAPGOODS = {"ABB", "SIEMENS", "SCHNEIDER", "CGPOWER", "BHEL", "THERMAX",
               "GVT&D", "POWERINDIA", "3MINDIA", "AIAENG", "CARBORUNIV",
               "JYOTICNC", "USHAMART", "HBLENGINE", "PTCIL"}
 
-# Defence & Shipbuilding → keep under INFRA
-_DEFENCE   = {"HAL", "BEL", "BDL", "BEML", "COCHINSHIP", "GRSE",
-              "MAZDOCK", "TITAGARH"}
+# Defence & Shipbuilding → own DEFENCE sector
+_DEFENCE = {"HAL", "BEL", "BDL", "BEML", "COCHINSHIP", "GRSE",
+            "MAZDOCK", "TITAGARH", "PARAS", "MTARTECH", "DPWWORLD",
+            "IDEAFORGE", "ZEN", "ELID"}
 
 # Auto stocks missed by NSE classification
 _AUTO_EXTRA = {"ASHOKLEY", "ESCORTS", "TMCV"}
@@ -86,7 +88,7 @@ _IT_INTERNET = {"NYKAA", "FIRSTCRY", "MEESHO", "LENSKART", "PAYTM",
 
 SYMBOL_OVERRIDES = {}
 for sym in _CAPGOODS:   SYMBOL_OVERRIDES[sym] = "CAPGOODS"
-for sym in _DEFENCE:    SYMBOL_OVERRIDES[sym] = "INFRA"
+for sym in _DEFENCE:    SYMBOL_OVERRIDES[sym] = "DEFENCE"
 for sym in _AUTO_EXTRA: SYMBOL_OVERRIDES[sym] = "AUTO"
 for sym in _ENERGY_EXTRA: SYMBOL_OVERRIDES[sym] = "ENERGY"
 for sym in _METAL_EXTRA:  SYMBOL_OVERRIDES[sym] = "METAL"
